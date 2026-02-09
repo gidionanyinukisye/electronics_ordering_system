@@ -9,9 +9,9 @@ if (
     exit;
 }
 
-require_once __DR__ . '/ ../config/db.php';
+require_once __DIR__ . '/../config/db.php';
 
-/* ===== DASHBOARD STATISTICS ===== */
+/* ===== DASHBOARD STATISTICS =====*/
 
 // Total Orders
 $totalOrders = mysqli_fetch_assoc(
@@ -190,7 +190,7 @@ th{
         <a href="products.php">🛒 Manage Products</a>
         <a href="orders.php">📦 View Orders</a>
         <a href="users.php">manage users</a>
-        <a href="../public/logout.php">🚪 Logout</a>
+        <a href="../api/logout.php">🚪 Logout</a>
     </div>
 
     <!-- LATEST ORDERS -->

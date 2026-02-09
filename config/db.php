@@ -4,9 +4,9 @@ $user = "root";
 $password = "";
 $database = "electronics_ordering_system";
 
-$conn = mysqli_connect($host, $user, $password, $database);
+$conn = new mysqli($host, $user, $password, $database);
 
-if (!$conn) {
-    die("Database connection failed: " . mysqli_connect_error());
+if ($conn->connect_error) {
+    die("Database connection failed: " . $conn->connect_error);
 }
 ?>
