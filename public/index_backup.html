@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ElectroHub | Electronics Ordering System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Segoe UI, Tahoma, sans-serif;
+}
+
+body{
+    background:#f4f6fb;
+    color:#222;
+}
+
+/* HEADER */
+header{
+    background:#0a1a33;
+    padding:20px 8%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    color:#fff;
+}
+
+header h1{
+    font-size:26px;
+}
+
+nav a{
+    color:#fff;
+    margin-left:25px;
+    text-decoration:none;
+}
+
+/* HERO */
+.hero{
+    background:linear-gradient(120deg,#0a1a33,#124a9f);
+    padding:90px 8%;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    align-items:center;
+    gap:40px;
+    color:#fff;
+}
+
+.hero h2{
+    font-size:46px;
+    margin-bottom:20px;
+}
+
+.hero p{
+    font-size:18px;
+    line-height:1.6;
+    margin-bottom:35px;
+}
+
+.hero button{
+    background:#ffb703;
+    border:none;
+    padding:16px 40px;
+    border-radius:30px;
+    font-size:16px;
+    cursor:pointer;
+}
+
+.hero img{
+    width:100%;
+    max-width:500px;
+}
+
+/* SECTIONS */
+.section{
+    padding:80px 8%;
+}
+
+.section h2{
+    font-size:36px;
+    text-align:center;
+    margin-bottom:15px;
+}
+
+.section p{
+    text-align:center;
+    color:#666;
+    margin-bottom:60px;
+}
+
+/* GRID */
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:35px;
+}
+
+/* CATEGORY CARD */
+.card{
+    background:#fff;
+    border-radius:22px;
+    padding:35px;
+    text-align:center;
+    box-shadow:0 12px 35px rgba(0,0,0,.1);
+    transition:.4s;
+}
+
+.card:hover{
+    transform:translateY(-10px);
+}
+
+.card img{
+    width:100%;
+    height:220px;
+    object-fit:contain;
+    margin-bottom:25px;
+}
+
+.card h3{
+    font-size:22px;
+}
+
+/* PRODUCT CARD */
+.product-card{
+    background:#fff;
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 10px 30px rgba(0,0,0,.1);
+}
+
+.product-card img{
+    width:100%;
+    height:250px;
+    object-fit:contain;
+    background:#f8f9fc;
+}
+
+.product-info{
+    padding:20px;
+}
+
+.product-info h4{
+    font-size:18px;
+    margin-bottom:6px;
+}
+
+.product-info span{
+    font-size:14px;
+    color:#777;
+}
+
+/* FOOTER */
+footer{
+    background:#0a1a33;
+    color:#ccc;
+    padding:40px 8%;
+    text-align:center;
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+    .hero{
+        grid-template-columns:1fr;
+        text-align:center;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>ElectroHub</h1>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="public/login.html">Login</a>
+        <a href="public/register.html">Register</a>
+    </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+    <div>
+        <h2>Order Genuine Electronics with Confidence</h2>
+        <p>
+            We provide original electronics products.
+            Order online and pay on delivery after receiving your item.
+        </p>
+        <button onclick="location.href='public/login.html'">Start Ordering</button>
+    </div>
+    <img src="assets/images/hero-electronics.png">
+</section>
+
+<!-- ELECTRONICS CATEGORIES -->
+<section class="section">
+    <h2>Popular Electronics Categories</h2>
+    <p>Explore our wide range of electronic products</p>
+
+    <div class="grid">
+        <div class="card"><img src="assets/images/smartphones.png"><h3>Smartphones</h3></div>
+        <div class="card"><img src="assets/images/laptops.png"><h3>Laptops</h3></div>
+        <div class="card"><img src="assets/images/tv.png"><h3>Televisions</h3></div>
+        <div class="card"><img src="assets/images/audio.png"><h3>Audio Devices</h3></div>
+        <div class="card"><img src="assets/images/accessories.png"><h3>Accessories</h3></div>
+        <div class="card"><img src="assets/images/home-electronics.png"><h3>Home Electronics</h3></div>
+    </div>
+</section>
+
+<!-- FEATURED PRODUCTS -->
+<section class="section" style="background:#fff">
+    <h2>Available Electronics</h2>
+    <p>Top quality products available in our store</p>
+
+    <div class="grid">
+        <div class="product-card">
+            <img src="assets/images/samsung-tv.png">
+            <div class="product-info">
+                <h4>Samsung Smart TV</h4>
+                <span>High Definition Display</span>
+            </div>
+        </div>
+
+        <div class="product-card">
+            <img src="assets/images/hp-laptop.png">
+            <div class="product-info">
+                <h4>HP Laptop</h4>
+                <span>Performance & Reliability</span>
+            </div>
+        </div>
+
+        <div class="product-card">
+            <img src="assets/images/iphone.png">
+            <div class="product-info">
+                <h4>iPhone Smartphone</h4>
+                <span>Premium Mobile Device</span>
+            </div>
+        </div>
+
+        <div class="product-card">
+            <img src="assets/images/headphones.png">
+            <div class="product-info">
+                <h4>Wireless Headphones</h4>
+                <span>High Quality Sound</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p>&copy; 2026 ElectroHub | Electronics Ordering System</p>
+</footer>
+
+</body>
+</html>

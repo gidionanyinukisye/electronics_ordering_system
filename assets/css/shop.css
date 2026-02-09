@@ -1,0 +1,91 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f4f6f9;
+}
+
+/* HEADER */
+.shop-header {
+    background: #0d6efd;
+    color: white;
+    padding: 15px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.shop-header a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* FILTER */
+.filter-box {
+    background: #fff;
+    padding: 15px;
+    margin: 20px auto;
+    width: 90%;
+    border-radius: 8px;
+}
+
+.filter-box form {
+    display: flex;
+    gap: 10px;
+}
+
+.filter-box input,
+.filter-box select,
+.filter-box button {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+/* PRODUCTS GRID */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 25px;
+    padding: 30px;
+}
+
+.product-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    transition: transform 0.3s;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+}
+
+.product-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: contain;
+}
+
+.price {
+    font-size: 18px;
+    font-weight: bold;
+    color: #0d6efd;
+}
+
+.product-card button {
+    margin-top: 10px;
+    padding: 10px;
+    background: #0d6efd;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.no-data {
+    text-align: center;
+    color: red;
+}

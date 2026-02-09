@@ -1,49 +1,59 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 session_start();
+include "../db.php"; // Unganisha database yako
 
-include("../config/db.php");
+$message = '';
 
-// STEP 1: Only POST allowed
-if($_SERVER['REQUEST_METHOD'] !== 'POST'){
-    header("Location: ../public/register.html");
-    exit();
+if(isset($_POST['register'])){
+    $full_name = mysqli_real_escape_string($conn, $_POST['full_name']);
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $password = mysqli_real_escape_string($conn, $_POST['password']);
+    $confirm_password = mysqli_real_escape_string($conn, $_POST['confirm_password']);
+
+    if($password !== $confirm_password){
+        $message = "Passwords do not match!";
+    } else {
+        $hashed = password_hash($password, PASSWORD_DEFAULT);
+        $check = mysqli_query($conn, "SELECT * FROM users WHERE email='$email'");
+        if(mysqli_num_rows($check) > 0){
+            $message = "Email already registered!";
+        } else {
+            mysqli_query($conn, "INSERT INTO users(full_name,email,password,status) VALUES('$full_name','$email','$hashed','active')");
+            $message = "Registration successful! <a href='login.php'>Login here</a>";
+        }
+    }
 }
+?>
 
-// STEP 2: Get POST data
-$full_name = trim($_POST['full_name'] ?? '');
-$email = trim($_POST['email'] ?? '');
-$password = $_POST['password'] ?? '';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Register | ElectroHub</title>
+<style>
+body{font-family:Segoe UI,sans-serif;background:#f4f6fb;margin:0;padding:0;}
+.container{max-width:400px;margin:50px auto;background:#fff;padding:25px;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.1);}
+h2{text-align:center;margin-bottom:20px;}
+input{width:100%;padding:12px;margin:8px 0;border:1px solid #ccc;border-radius:8px;}
+button{background:#124a9f;color:#fff;padding:12px;width:100%;border:none;border-radius:8px;cursor:pointer;font-weight:600;}
+.message{color:red;text-align:center;margin-bottom:10px;}
+a{color:#124a9f;text-decoration:none;}
+</style>
+</head>
+<body>
 
-// STEP 3: Validate
-if($full_name === '' || $email === '' || $password === ''){
-    die("All fields are required");
-}
+<div class="container">
+<h2>Create Account</h2>
+<?php if($message != ''){ echo '<div class="message">'.$message.'</div>'; } ?>
+<form method="post">
+<input type="text" name="full_name" placeholder="Full Name" required>
+<input type="email" name="email" placeholder="Email" required>
+<input type="password" name="password" placeholder="Password" required>
+<input type="password" name="confirm_password" placeholder="Confirm Password" required>
+<button type="submit" name="register">Register</button>
+</form>
+<p style="text-align:center;margin-top:12px;">Already have an account? <a href="login.php">Login</a></p>
+</div>
 
-// STEP 4: Check if email already exists
-$sql = "SELECT user_id FROM users WHERE email=?";
-$stmt = mysqli_prepare($conn, $sql);
-mysqli_stmt_bind_param($stmt, "s", $email);
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
-
-if(mysqli_num_rows($result) > 0){
-    die("Email already registered");
-}
-
-// STEP 5: Hash password
-$hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
-// STEP 6: Insert user
-$insert = "INSERT INTO users (full_name, email, password, role_id) VALUES (?, ?, ?, ?)";
-$stmt = mysqli_prepare($conn, $insert);
-$role_id = 2; // 1=admin, 2=customer
-mysqli_stmt_bind_param($stmt, "sssi", $full_name, $email, $hashed_password, $role_id);
-$exec = mysqli_stmt_execute($stmt);
-
-if($exec){
-    echo "Registration successful! <a href='../public/login.html'>Login Now</a>";
-} else {
-    die("Registration failed: " . mysqli_error($conn));
-}
+</body>
+</html>
