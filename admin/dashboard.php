@@ -9,7 +9,7 @@ if (
     exit;
 }
 
-include("../config/db.php");
+require_once __DR__ . '/ ../config/db.php';
 
 /* ===== DASHBOARD STATISTICS ===== */
 
