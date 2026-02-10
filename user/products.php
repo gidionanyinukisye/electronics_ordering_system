@@ -2,7 +2,50 @@
 session_start();
 include("../config/db.php");
 
-// Fetch products (only active)
+/* =========================
+   AUTH CHECK
+========================= */
+if(!isset($_SESSION['auth']) || $_SESSION['role_id'] != 2){
+    header("Location: ../public/login.html");
+    exit;
+}
+
+/* =========================
+   HANDLE ADD TO CART
+========================= */
+if(isset($_POST['add_to_cart'])){
+    $product_id = (int) $_POST['product_id'];
+    $product_name = $_POST['product_name'];
+    $price = (float) $_POST['price'];
+    $image = $_POST['image'];
+    $quantity = 1; // default quantity
+
+    // Initialize cart if not exists
+    if(!isset($_SESSION['cart'])){
+        $_SESSION['cart'] = [];
+    }
+
+    // Add to cart or update quantity if exists
+    if(isset($_SESSION['cart'][$product_id])){
+        $_SESSION['cart'][$product_id]['quantity'] += $quantity;
+    } else {
+        $_SESSION['cart'][$product_id] = [
+            'product_id' => $product_id,
+            'product_name' => $product_name,
+            'price' => $price,
+            'image' => $image,
+            'quantity' => $quantity
+        ];
+    }
+
+    // Redirect back to products to avoid resubmission
+    header("Location: products.php");
+    exit;
+}
+
+/* =========================
+   FETCH PRODUCTS (ONLY ACTIVE)
+========================= */
 $query = mysqli_query($conn, "
     SELECT p.*, c.category_name 
     FROM products p
@@ -17,7 +60,6 @@ $query = mysqli_query($conn, "
 <head>
 <meta charset="UTF-8">
 <title>Products | Electronics Ordering System</title>
-
 <style>
 body{
     margin:0;
@@ -110,7 +152,8 @@ button:hover{
                 <?php if($row['stock'] > 0){ ?>
                     <div class="price">$<?php echo number_format($row['price'],2); ?></div>
 
-                    <form method="POST" action="cart.php">
+                    <!-- ADD TO CART FORM -->
+                    <form method="POST" action="">
                         <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">
                         <input type="hidden" name="product_name" value="<?php echo $row['product_name']; ?>">
                         <input type="hidden" name="price" value="<?php echo $row['price']; ?>">
