@@ -1,41 +1,70 @@
 <?php
 session_start();
-require "../api/db.php";
+include("../config/db.php");
 
-// Initialize cart if it doesn't exist
-if(!isset($_SESSION['cart'])){
+/* =========================
+   INIT CART SESSION
+========================= */
+if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
 
-// Check required POST data
-if(isset($_POST['product_id'], $_POST['product_name'], $_POST['price'], $_POST['qty'])){
-    $product_id = intval($_POST['product_id']);
-    $product_name = $_POST['product_name'];
-    $price = floatval($_POST['price']);
-    $qty = intval($_POST['qty']);
-
-    // Check if product already exists in cart
-    $found = false;
-    foreach($_SESSION['cart'] as &$item){
-        if($item['product_id'] == $product_id){
-            $item['qty'] += $qty;
-            $found = true;
-            break;
-        }
-    }
-    if(!$found){
-        $_SESSION['cart'][] = [
-            'product_id' => $product_id,
-            'product_name' => $product_name,
-            'price' => $price,
-            'qty' => $qty
-        ];
-    }
-
-    header("Location: cart.php");
+/* =========================
+   VALIDATE REQUEST
+========================= */
+if (!isset($_POST['product_id'])) {
+    header("Location: products.php");
     exit;
+}
+
+$product_id = (int) $_POST['product_id'];
+
+/* =========================
+   FETCH PRODUCT FROM DB
+   (SAFEST WAY)
+========================= */
+$query = mysqli_query($conn, "
+    SELECT product_id, product_name, price, stock, image 
+    FROM products 
+    WHERE product_id = $product_id AND is_deleted = 0
+");
+
+if (mysqli_num_rows($query) == 0) {
+    die("Product not found");
+}
+
+$product = mysqli_fetch_assoc($query);
+
+/* =========================
+   CHECK STOCK
+========================= */
+if ($product['stock'] <= 0) {
+    $_SESSION['error'] = "Product is out of stock";
+    header("Location: products.php");
+    exit;
+}
+
+/* =========================
+   ADD / UPDATE CART
+========================= */
+if (isset($_SESSION['cart'][$product_id])) {
+
+    // prevent exceeding stock
+    if ($_SESSION['cart'][$product_id]['quantity'] < $product['stock']) {
+        $_SESSION['cart'][$product_id]['quantity']++;
+    }
 
 } else {
-    die("Error: Missing product info. Make sure all fields are filled.");
+
+    $_SESSION['cart'][$product_id] = [
+        'product_id'   => $product['product_id'],
+        'product_name' => $product['product_name'],
+        'price'        => $product['price'],
+        'quantity'     => 1,
+        'image'        => $product['image']
+    ];
 }
-?>
+
+$_SESSION['success'] = "Product added to cart";
+header("Location: cart.php");
+exit;

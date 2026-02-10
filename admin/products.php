@@ -18,7 +18,7 @@ if(isset($_GET['delete'])){
     if(file_exists("../uploads/".$img['image'])){
         unlink("../uploads/".$img['image']);
     }
-    mysqli_query($conn,"DELETE FROM products WHERE product_id='$id'");
+    mysqli_query($conn,"UPDATE products SET is_deleted = 1 WHERE product_id = '$id'");
     header("Location: products.php");
 }
 

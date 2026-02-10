@@ -2,91 +2,86 @@
 session_start();
 include("../config/db.php");
 
-// 1️⃣ Check login
-if(!isset($_SESSION['user_id'])){
+/* =========================
+   AUTH CHECK
+========================= */
+if (!isset($_SESSION['auth']) || $_SESSION['role_id'] != 2) {
     header("Location: ../public/login.html");
-    exit();
+    exit;
 }
 
-$cart = $_SESSION['cart'] ?? [];
-
-if(empty($cart)){
-    echo "<script>alert('Your cart is empty!'); window.location='products.php';</script>";
-    exit();
+/* =========================
+   CART CHECK
+========================= */
+if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
+    header("Location: cart.php");
+    exit;
 }
 
-// 2️⃣ Get products details
-$cart_products = [];
-$total = 0;
+$user_id = $_SESSION['user_id'];
+$payment_method = "Pay on Delivery";
+$status = "Pending";
 
-foreach($cart as $product_id => $quantity){
-    $sql = "SELECT product_name, price FROM products WHERE product_id=?";
-    $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, "i", $product_id);
-    mysqli_stmt_execute($stmt);
-    $res = mysqli_stmt_get_result($stmt);
-    $product = mysqli_fetch_assoc($res);
-
-    $product['quantity'] = $quantity;
-    $product['subtotal'] = $quantity * $product['price'];
-    $total += $product['subtotal'];
-
-    $cart_products[] = $product;
+/* =========================
+   CALCULATE TOTAL
+========================= */
+$total_amount = 0;
+foreach ($_SESSION['cart'] as $item) {
+    $total_amount += $item['price'] * $item['quantity'];
 }
-?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Place Order</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
-    <style>
-        body{font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:0;}
-        .container{width:90%;margin:auto;padding:20px;}
-        h1{text-align:center;margin-bottom:20px;}
-        table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.2);}
-        th,td{padding:12px;text-align:left;border-bottom:1px solid #ddd;}
-        th{background:#28a745;color:#fff;}
-        tfoot td{font-weight:bold;}
-        .btn{padding:8px 15px;background:#28a745;color:#fff;border:none;border-radius:5px;cursor:pointer;}
-        .btn:hover{background:#218838;}
-    </style>
-</head>
-<body>
-<div class="container">
-    <h1>Review Your Order</h1>
+/* =========================
+   START TRANSACTION
+========================= */
+mysqli_begin_transaction($conn);
 
-    <table>
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Price ($)</th>
-                <th>Quantity</th>
-                <th>Subtotal ($)</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach($cart_products as $item){ ?>
-            <tr>
-                <td><?= $item['product_name']; ?></td>
-                <td><?= number_format($item['price'],2); ?></td>
-                <td><?= $item['quantity']; ?></td>
-                <td><?= number_format($item['subtotal'],2); ?></td>
-            </tr>
-            <?php } ?>
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="3">Total</td>
-                <td><?= number_format($total,2); ?></td>
-            </tr>
-        </tfoot>
-    </table>
+try {
 
-    <form action="confirm_order.php" method="post" style="margin-top:20px;">
-        <button type="submit" class="btn">Confirm Order</button>
-    </form>
-</div>
-</body>
-</html>
+    /* =========================
+       INSERT ORDER
+    ========================= */
+    $order_sql = "INSERT INTO orders (user_id, total_amount, payment_method, status)
+                  VALUES ('$user_id', '$total_amount', '$payment_method', '$status')";
+    mysqli_query($conn, $order_sql);
+
+    $order_id = mysqli_insert_id($conn);
+
+    /* =========================
+       INSERT ORDER ITEMS
+    ========================= */
+    foreach ($_SESSION['cart'] as $item) {
+
+        $product_id = $item['product_id'];
+        $qty = $item['quantity'];
+        $price = $item['price'];
+
+        // Save item
+        mysqli_query($conn, "
+            INSERT INTO order_items (order_id, product_id, quantity, price)
+            VALUES ('$order_id', '$product_id', '$qty', '$price')
+        ");
+
+        // Reduce stock
+        mysqli_query($conn, "
+            UPDATE products 
+            SET stock = stock - $qty 
+            WHERE product_id = '$product_id'
+        ");
+    }
+
+    /* =========================
+       COMMIT
+    ========================= */
+    mysqli_commit($conn);
+
+    // Clear cart
+    unset($_SESSION['cart']);
+
+    header("Location: order_details.php?order_id=$order_id");
+    exit;
+
+} catch (Exception $e) {
+
+    mysqli_rollback($conn);
+    die("Order failed: " . $e->getMessage());
+}

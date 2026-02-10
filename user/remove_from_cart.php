@@ -1,12 +1,33 @@
 <?php
 session_start();
-if(isset($_POST['index'])){
-    $index = intval($_POST['index']);
-    if(isset($_SESSION['cart'][$index])){
-        unset($_SESSION['cart'][$index]);
-        $_SESSION['cart'] = array_values($_SESSION['cart']); // reindex
-    }
+
+/* =========================
+   CART CHECK
+========================= */
+if (!isset($_SESSION['cart'])) {
+    header("Location: cart.php");
+    exit;
 }
+
+/* =========================
+   VALIDATE REQUEST
+========================= */
+if (!isset($_GET['product_id'])) {
+    header("Location: cart.php");
+    exit;
+}
+
+$product_id = (int) $_GET['product_id'];
+
+/* =========================
+   REMOVE ITEM
+========================= */
+if (isset($_SESSION['cart'][$product_id])) {
+    unset($_SESSION['cart'][$product_id]);
+}
+
+/* =========================
+   REDIRECT BACK
+========================= */
 header("Location: cart.php");
 exit;
-?>
