@@ -16,9 +16,13 @@ $user_id = $_SESSION['user_id'];
    FETCH USER ORDERS
 ========================= */
 $orders_query = mysqli_query($conn, "
-    SELECT * FROM orders 
-    WHERE user_id = $user_id
-    ORDER BY created_at DESC
+    SELECT o.*, 
+           SUM(oi.quantity * oi.price) AS total_amount_calc
+    FROM orders o
+    LEFT JOIN order_items oi ON o.order_id = oi.order_id
+    WHERE o.user_id = $user_id
+    GROUP BY o.order_id
+    ORDER BY o.created_at DESC
 ");
 ?>
 
@@ -30,7 +34,7 @@ $orders_query = mysqli_query($conn, "
 <style>
 body{font-family:Segoe UI,sans-serif;background:#f4f6fb;margin:0;padding:0;}
 .container{width:90%;margin:30px auto;}
-h2{text-align:center;color:#2c3e50;margin-bottom:25px;}
+h2{text-align:center;color:#0a1a33;margin-bottom:30px;}
 .order-card{background:#fff;padding:20px;border-radius:15px;box-shadow:0 10px 25px rgba(0,0,0,.1);margin-bottom:20px;transition:.3s;}
 .order-card:hover{transform:translateY(-5px);box-shadow:0 12px 25px rgba(0,0,0,.2);}
 .order-card h3{margin:0;color:#0a1a33;}
@@ -53,7 +57,7 @@ h2{text-align:center;color:#2c3e50;margin-bottom:25px;}
         <div class="order-card">
             <h3>Order #<?= $order['order_id']; ?></h3>
             <p><small>Placed on: <?= $order['created_at']; ?></small></p>
-            <p><strong>Total Amount:</strong> $<?= number_format($order['total_amount'],2); ?></p>
+            <p><strong>Total Amount:</strong> $<?= number_format($order['total_amount_calc'],2); ?></p>
             <p><strong>Status:</strong> <?= $order['status']; ?></p>
             <a class="view-details" href="order_details.php?order_id=<?= $order['order_id']; ?>">View Details</a>
         </div>
