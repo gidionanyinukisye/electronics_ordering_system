@@ -1,98 +1,109 @@
 <?php
 session_start();
-require "../api/db.php";
+include("../config/db.php");
 
-// Fetch categories for filter dropdown
-$categories = [];
-$catResult = $conn->query("SELECT category_id, category_name FROM categories");
-while($cat = $catResult->fetch_assoc()){
-    $categories[$cat['category_id']] = $cat['category_name'];
+// Authentication: user only
+if(!isset($_SESSION['auth']) || $_SESSION['role_id'] != 2){
+    header("Location: ../public/login.html");
+    exit;
 }
 
-// Handle search and category filter
-$search = isset($_GET['search']) ? $_GET['search'] : '';
-$category = isset($_GET['category']) ? intval($_GET['category']) : 0;
+// Fetch products
+$query = mysqli_query($conn, "SELECT p.*, c.category_name FROM products p 
+                              LEFT JOIN categories c ON p.category_id = c.category_id
+                              ORDER BY p.product_id DESC");
 
-$query = "SELECT product_id, product_name, price, image, category_id, stock FROM products WHERE 1";
-
-if(!empty($search)){
-    $query .= " AND product_name LIKE '%".$conn->real_escape_string($search)."%'";
-}
-if($category > 0){
-    $query .= " AND category_id = ".$category;
-}
-
-$result = $conn->query($query);
-
-// Search & Filter Form
-echo "<div style='text-align:center; margin:20px;'>
-        <form method='GET' style='display:inline-block;'>
-            <input type='text' name='search' placeholder='Search products...' value='".htmlspecialchars($search)."' style='padding:5px; width:200px;'>
-            <select name='category' style='padding:5px;'>
-                <option value='0'>All Categories</option>";
-foreach($categories as $id => $name){
-    $selected = ($category == $id) ? 'selected' : '';
-    echo "<option value='{$id}' {$selected}>{$name}</option>";
-}
-echo "  </select>
-        <button type='submit' style='padding:5px 10px;'>Filter</button>
-        </form>
-      </div>";
-
-// Products Grid
-echo "<div style='display:flex; flex-wrap:wrap; gap:20px; justify-content:center;'>";
-
-if($result->num_rows > 0){
-    while($row = $result->fetch_assoc()){
-        $product_id = $row['product_id'];
-        $product_name = htmlspecialchars($row['product_name']);
-        $price = number_format($row['price'], 2);
-        $image = !empty($row['image']) ? "../assets/images/".$row['image'] : "../assets/images/no_image.png";
-
-        // Badge
-        $badge = '';
-        if($row['stock'] <= 0){
-            $badge = "<span style='background:red; color:white; padding:2px 5px; font-size:12px; position:absolute; top:10px; left:10px;'>Out of Stock</span>";
-        } elseif(stripos($product_name, 'new') !== false){
-            $badge = "<span style='background:green; color:white; padding:2px 5px; font-size:12px; position:absolute; top:10px; left:10px;'>New</span>";
-        } else {
-            $badge = "<span style='background:orange; color:white; padding:2px 5px; font-size:12px; position:absolute; top:10px; left:10px;'>Popular</span>";
-        }
-
-        echo "<div style='position:relative; border:1px solid #ddd; border-radius:10px; overflow:hidden; width:220px; box-shadow:0 4px 10px rgba(0,0,0,0.1); text-align:center; transition: transform 0.2s;'>
-                {$badge}
-                <img src='{$image}' alt='{$product_name}' style='width:100%; height:200px; object-fit:cover;'>
-                <div style='padding:10px;'>
-                    <h3 style='font-size:18px; color:#333;'>{$product_name}</h3>
-                    <p style='font-weight:bold; color:#27ae60;'>\${$price}</p>";
-        if($row['stock'] > 0){
-            echo "<form method='POST' action='add_to_cart.php'>
-                    <input type='hidden' name='product_id' value='{$product_id}'>
-                    <input type='hidden' name='product_name' value='{$product_name}'>
-                    <input type='hidden' name='price' value='{$row['price']}'>
-                    <input type='number' name='qty' value='1' min='1' style='width:50px; margin-bottom:5px;'>
-                    <br>
-                    <button type='submit' style='padding:8px 15px; background-color:#2980b9; color:white; border:none; border-radius:5px; cursor:pointer;'>Add to Cart</button>
-                  </form>";
-        } else {
-            echo "<p style='color:red; font-weight:bold;'>Unavailable</p>";
-        }
-        echo "</div>
-              </div>";
-    }
-} else {
-    echo "<p>No products found.</p>";
-}
-
-echo "</div>";
 ?>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Products | ElectroHub</title>
+<link rel="stylesheet" href="../assets/css/style.css">
 <style>
-div:hover {
-    transform: scale(1.03);
-    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:25px;
+    margin-top:30px;
 }
-button:hover {
-    background-color: #3498db;
+
+.product-card{
+    background:#fff;
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    transition:.35s;
+    text-align:center;
+}
+
+.product-card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 12px 30px rgba(0,0,0,.12);
+}
+
+.product-card img{
+    width:100%;
+    height:160px;
+    object-fit:contain;
+    background:#f8f9fc;
+    padding:12px;
+}
+
+.product-info{
+    padding:15px;
+}
+
+.product-info h4{
+    font-size:18px;
+    margin-bottom:6px;
+}
+
+.product-info small{
+    color:#777;
+    display:block;
+    margin-bottom:10px;
+}
+
+.product-info button{
+    background:#0a1a33;
+    color:#fff;
+    border:none;
+    padding:10px 18px;
+    border-radius:20px;
+    cursor:pointer;
+    font-weight:600;
+    transition:.3s;
+}
+
+.product-info button:hover{
+    background:#124a9f;
 }
 </style>
+</head>
+<body>
+
+<h2 style="text-align:center;margin-top:30px;">Available Products</h2>
+
+<div class="grid">
+<?php while($row = mysqli_fetch_assoc($query)) { ?>
+    <div class="product-card">
+        <img src="../assets/images/products/<?php echo $row['image']; ?>" alt="<?php echo $row['product_name']; ?>">
+        <div class="product-info">
+            <h4><?php echo $row['product_name']; ?></h4>
+            <small>Category: <?php echo $row['category_name']; ?></small>
+            <small>Price: $<?php echo number_format($row['price'],2); ?></small>
+            <form method="POST" action="cart.php">
+                <input type="hidden" name="product_id" value="<?php echo $row['product_id']; ?>">
+                <input type="hidden" name="product_name" value="<?php echo $row['product_name']; ?>">
+                <input type="hidden" name="price" value="<?php echo $row['price']; ?>">
+                <button type="submit" name="add_to_cart">Add to Cart</button>
+            </form>
+        </div>
+    </div>
+<?php } ?>
+</div>
+
+</body>
+</html>
