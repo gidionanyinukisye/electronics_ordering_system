@@ -1,220 +1,138 @@
 <?php
 session_start();
-if (
-    !isset($_SESSION['auth']) ||
-    $_SESSION['auth'] !== true ||
-    $_SESSION['role_id'] != 1
-) {
+include("../config/db.php");
+
+// Admin Authentication
+if(!isset($_SESSION['auth']) || $_SESSION['role_id'] != 1){
     header("Location: ../public/login.html");
     exit;
 }
 
-require_once __DIR__ . '/../config/db.php';
-
-/* ===== DASHBOARD STATISTICS =====*/
-
-// Total Orders
-$totalOrders = mysqli_fetch_assoc(
-    mysqli_query($conn, "SELECT COUNT(*) AS total FROM orders")
-)['total'];
-
-// Pending Orders
-$pendingOrders = mysqli_fetch_assoc(
-    mysqli_query($conn, "SELECT COUNT(*) AS total FROM orders WHERE status='Pending'")
-)['total'];
-
-// Delivered Orders
-$deliveredOrders = mysqli_fetch_assoc(
-    mysqli_query($conn, "SELECT COUNT(*) AS total FROM orders WHERE status='Delivered'")
-)['total'];
-
-// Total Customers
-$totalCustomers = mysqli_fetch_assoc(
-    mysqli_query($conn, "SELECT COUNT(*) AS total FROM users WHERE role_id=2")
-)['total'];
-
-// Total Products
-$totalProducts = mysqli_fetch_assoc(
-    mysqli_query($conn, "SELECT COUNT(*) AS total FROM products")
-)['total'];
-
-// Total Revenue (Estimate – COD)
-$totalRevenue = mysqli_fetch_assoc(
-    mysqli_query($conn, "
-        SELECT SUM(oi.price * oi.quantity) AS total
-        FROM order_items oi
-        JOIN orders o ON oi.order_id=o.order_id
-        WHERE o.status='Delivered'
-    ")
-)['total'] ?? 0;
-
-// Latest Orders
-$latestOrders = mysqli_query($conn, "
-    SELECT o.order_id, u.full_name, o.status, o.order_date
-    FROM orders o
-    JOIN users u ON o.user_id=u.user_id
-    ORDER BY o.order_date DESC
-    LIMIT 5
-");
+// Fetch stats
+$products_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM products WHERE is_deleted=0"))['total'];
+$users_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM users"))['total'];
+$orders_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM orders"))['total'];
+$pending_orders_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM orders WHERE status='Pending'"))['total'];
+$completed_orders_count = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM orders WHERE status='Completed'"))['total'];
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admin Dashboard</title>
-
+<title>Admin Dashboard | Electronics Ordering System</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 <style>
 body{
     margin:0;
-    font-family: Arial, sans-serif;
-    background:#f4f7f9;
+    font-family: 'Roboto', sans-serif;
+    background:#f4f6fb;
 }
-.header{
-    background:#0d6efd;
+header{
+    background:#0a1a33;
     color:#fff;
-    padding:20px;
+    padding:20px 50px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
 }
-.header h1{margin:0;}
-.container{
-    padding:20px;
+header h1{font-size:28px;}
+header nav a{
+    color:#fff;
+    margin-left:20px;
+    text-decoration:none;
+    font-weight:500;
 }
-.stats{
-    display:grid;
-    grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
-    gap:20px;
-    margin-bottom:30px;
-}
+.container{width:95%;margin:auto;padding:30px 0;}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:25px;margin-bottom:40px;}
 .card{
     background:#fff;
-    padding:20px;
-    border-radius:12px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+    padding:25px;
+    border-radius:20px;
+    box-shadow:0 10px 25px rgba(0,0,0,.1);
+    transition:.3s;
+    text-align:center;
 }
-.card h2{
-    margin:0;
-    font-size:28px;
-    color:#0d6efd;
-}
-.card p{
-    margin:5px 0 0;
-    color:#555;
-}
-.actions{
-    display:flex;
-    gap:15px;
-    margin-bottom:30px;
-}
-.actions a{
-    padding:12px 20px;
-    background:#0d6efd;
-    color:#fff;
-    border-radius:8px;
-    text-decoration:none;
-    font-weight:bold;
-}
-.actions a:hover{
-    background:#084298;
-}
-.table-box{
-    background:#fff;
-    padding:20px;
-    border-radius:12px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.1);
-}
-table{
-    width:100%;
-    border-collapse:collapse;
-}
-th,td{
-    padding:12px;
-    border-bottom:1px solid #ddd;
-    text-align:left;
-}
-th{
-    background:#0d6efd;
-    color:#fff;
-}
-.status{
-    padding:5px 10px;
-    border-radius:6px;
-    color:#fff;
-    font-size:13px;
-}
-.Pending{background:#ffc107;color:#000;}
-.Delivered{background:#198754;}
-.Cancelled{background:#dc3545;}
+.card:hover{transform:translateY(-6px);box-shadow:0 15px 40px rgba(0,0,0,.2);}
+.card h2{font-size:32px;margin:10px 0;color:#0a1a33;}
+.card p{color:#777;font-size:16px;}
+.card span{display:block;margin-top:5px;color:#124a9f;font-weight:bold;font-size:18px;}
+.overview{background:#fff;padding:20px;border-radius:20px;box-shadow:0 10px 25px rgba(0,0,0,.1);}
+.overview h3{margin-bottom:15px;color:#0a1a33;}
+.overview table{width:100%;border-collapse:collapse;}
+.overview th, .overview td{padding:12px 15px;text-align:left;border-bottom:1px solid #ddd;}
+.overview th{background:#0a1a33;color:#fff;}
+.overview tr:hover{background:#f1f1f1;}
 </style>
 </head>
-
 <body>
 
-<div class="header">
+<header>
     <h1>Admin Dashboard</h1>
-    <p>Welcome, <?= $_SESSION['full_name']; ?></p>
-</div>
+    <nav>
+        <a href="dashboard.php">Dashboard</a>
+        <a href="products.php">Products</a>
+        <a href="orders.php">Orders</a>
+        <a href="users.php">Users</a>
+        <a href="../api/logout.php">Logout</a>
+    </nav>
+</header>
 
 <div class="container">
 
-    <!-- STATISTICS -->
-    <div class="stats">
+    <div class="cards">
         <div class="card">
-            <h2><?= $totalOrders; ?></h2>
+            <h2><?php echo $products_count; ?></h2>
+            <p>Products</p>
+        </div>
+        <div class="card">
+            <h2><?php echo $users_count; ?></h2>
+            <p>Users</p>
+        </div>
+        <div class="card">
+            <h2><?php echo $orders_count; ?></h2>
             <p>Total Orders</p>
         </div>
         <div class="card">
-            <h2><?= $pendingOrders; ?></h2>
+            <h2><?php echo $pending_orders_count; ?></h2>
             <p>Pending Orders</p>
         </div>
         <div class="card">
-            <h2><?= $deliveredOrders; ?></h2>
-            <p>Delivered Orders</p>
-        </div>
-        <div class="card">
-            <h2><?= $totalCustomers; ?></h2>
-            <p>Total Customers</p>
-        </div>
-        <div class="card">
-            <h2><?= $totalProducts; ?></h2>
-            <p>Total Products</p>
-        </div>
-        <div class="card">
-            <h2>TZS <?= number_format($totalRevenue); ?></h2>
-            <p>Total Revenue (COD)</p>
+            <h2><?php echo $completed_orders_count; ?></h2>
+            <p>Completed Orders</p>
         </div>
     </div>
 
-    <!-- QUICK ACTIONS -->
-    <div class="actions">
-        <a href="add_product.php">➕ Add Product</a>
-        <a href="products.php">🛒 Manage Products</a>
-        <a href="orders.php">📦 View Orders</a>
-        <a href="users.php">manage users</a>
-        <a href="../api/logout.php">🚪 Logout</a>
-    </div>
-
-    <!-- LATEST ORDERS -->
-    <div class="table-box">
-        <h3>Latest Orders</h3>
+    <div class="overview">
+        <h3>Recent Orders</h3>
         <table>
             <tr>
                 <th>Order ID</th>
-                <th>Customer</th>
+                <th>User</th>
+                <th>Total Amount</th>
                 <th>Status</th>
                 <th>Date</th>
-                <th>Action</th>
             </tr>
-            <?php while($row = mysqli_fetch_assoc($latestOrders)){ ?>
-            <tr>
-                <td>#<?= $row['order_id']; ?></td>
-                <td><?= $row['full_name']; ?></td>
-                <td><span class="status <?= $row['status']; ?>"><?= $row['status']; ?></span></td>
-                <td><?= $row['order_date']; ?></td>
-                <td>
-                    <a href="order_details.php?id=<?= $row['order_id']; ?>">View</a>
-                </td>
-            </tr>
-            <?php } ?>
+            <?php
+            $recent_orders = mysqli_query($conn, "
+                SELECT o.*, u.full_name, SUM(oi.quantity*oi.price) AS total_amount
+                FROM orders o
+                LEFT JOIN users u ON o.user_id = u.user_id
+                LEFT JOIN order_items oi ON o.order_id = oi.order_id
+                GROUP BY o.order_id
+                ORDER BY o.created_at DESC
+                LIMIT 5
+            ");
+            while($order = mysqli_fetch_assoc($recent_orders)){
+                echo "<tr>
+                        <td>#".$order['order_id']."</td>
+                        <td>".$order['full_name']."</td>
+                        <td>$".number_format($order['total_amount'],2)."</td>
+                        <td>".$order['status']."</td>
+                        <td>".date("d M Y H:i", strtotime($order['created_at']))."</td>
+                    </tr>";
+            }
+            ?>
         </table>
     </div>
 

@@ -134,8 +134,8 @@ body{
         <a href="dashboard.php">Dashboard</a>
         <a href="products.php">Products</a>
         <a href="cart.php">Cart (<?php echo $cart_items; ?>)</a>
-        <a href="my_order.php">My Orders</a>
-        <a href="../public/logout.php">Logout</a>
+        <a href="my_orders.php">My Orders</a>
+        <a href="../api/logout.php">Logout</a>
     </nav>
 </div>
 

@@ -1,102 +1,103 @@
 <?php
-session_start();
+include("config/db.php");
+
+// Latest products
+$products = mysqli_query($conn,"
+    SELECT * FROM products
+    WHERE is_deleted = 0 AND stock > 0
+    ORDER BY product_id DESC
+    LIMIT 8
+");
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>ElectroHub | Electronics Ordering System</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="assets/css/styles.css">
+<title>Electronics Ordering System</title>
 
 <style>
-*{box-sizing:border-box}
-body{
+*{
     margin:0;
-    font-family:'Segoe UI',sans-serif;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Segoe UI, sans-serif;
+}
+body{
     background:#f4f6fb;
     color:#222;
 }
-a{text-decoration:none}
 
-/* HEADER */
-header{
+/* NAV */
+nav{
     background:#0a1a33;
-    color:#fff;
-    padding:20px 8%;
+    padding:15px 8%;
     display:flex;
     justify-content:space-between;
     align-items:center;
 }
-header h1{margin:0;font-size:28px}
+nav h2{
+    color:#fff;
+}
 nav a{
     color:#fff;
     margin-left:20px;
+    text-decoration:none;
     font-weight:500;
 }
 
 /* HERO */
 .hero{
-    background:linear-gradient(120deg,#0a1a33,#124a9f);
-    padding:80px 8%;
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:40px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:70px 8%;
+    background:linear-gradient(120deg,#0a1a33,#123a7c);
     color:#fff;
 }
-.hero h2{font-size:42px;margin-bottom:20px}
-.hero p{font-size:18px;line-height:1.6;margin-bottom:35px}
-.hero button{
+.hero-text{
+    max-width:50%;
+}
+.hero-text h1{
+    font-size:45px;
+    margin-bottom:15px;
+}
+.hero-text p{
+    font-size:18px;
+    margin-bottom:25px;
+}
+.hero-text a{
     background:#ffb703;
-    border:none;
-    padding:16px 40px;
+    padding:14px 25px;
     border-radius:30px;
-    font-size:16px;
-    cursor:pointer;
-    font-weight:600;
+    color:#000;
+    font-weight:bold;
+    text-decoration:none;
 }
-.hero img{width:100%;max-width:450px}
-
-/* SEARCH */
-.search-box{
-    margin-top:30px;
-}
-.search-box input{
-    width:100%;
-    padding:14px 20px;
-    border-radius:30px;
-    border:none;
-    font-size:16px;
+.hero img{
+    width:420px;
 }
 
 /* SECTIONS */
 .section{
-    padding:70px 8%;
+    padding:60px 8%;
 }
 .section h2{
     text-align:center;
-    font-size:34px;
-}
-.section p{
-    text-align:center;
-    color:#666;
-    margin-bottom:50px;
+    margin-bottom:40px;
 }
 
-/* GRID */
-.grid{
+/* PRODUCTS GRID */
+.products{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
-    gap:30px;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:25px;
 }
-
-/* CATEGORY CARD */
 .card{
     background:#fff;
-    border-radius:20px;
-    padding:25px;
-    text-align:center;
-    box-shadow:0 12px 35px rgba(0,0,0,.1);
+    border-radius:15px;
+    box-shadow:0 8px 25px rgba(0,0,0,.1);
+    overflow:hidden;
     transition:.3s;
 }
 .card:hover{
@@ -104,146 +105,131 @@ nav a{
 }
 .card img{
     width:100%;
-    height:160px;
+    height:220px;
     object-fit:contain;
-    margin-bottom:15px;
+    background:#f8f9fc;
 }
-.card h3{margin:0}
+.card-body{
+    padding:15px;
+}
+.card-body h4{
+    margin:8px 0;
+}
+.price{
+    font-size:18px;
+    font-weight:bold;
+    color:#0a1a33;
+}
 
-/* FOOTER */
-footer{
-    background:#0a1a33;
-    color:#ccc;
-    padding:40px 8%;
-}
-.footer-grid{
+/* WHY US */
+.why{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
     gap:30px;
 }
-footer h4{color:#fff}
-footer a{color:#ccc;display:block;margin-bottom:8px}
-.social a{
-    display:inline-block;
-    margin-right:15px;
-    font-size:18px;
-}
-.copy{
+.why div{
+    background:#fff;
+    padding:30px;
+    border-radius:15px;
     text-align:center;
-    margin-top:30px;
-    font-size:14px;
+    box-shadow:0 5px 20px rgba(0,0,0,.1);
 }
 
-/* RESPONSIVE */
-@media(max-width:900px){
-    .hero{grid-template-columns:1fr;text-align:center}
+/* CTA */
+.cta{
+    background:#0a1a33;
+    color:#fff;
+    text-align:center;
+    padding:60px 8%;
+}
+.cta a{
+    background:#ffb703;
+    padding:15px 30px;
+    color:#000;
+    border-radius:30px;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+/* FOOTER */
+footer{
+    background:#020d1f;
+    color:#ccc;
+    text-align:center;
+    padding:20px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
-<header>
-    <h1>ElectroHub</h1>
-    <nav>
+<!-- NAV -->
+<nav>
+    <h2>ElectroStore</h2>
+    <div>
         <a href="index.php">Home</a>
+        <a href="user/products.php">Products</a>
         <a href="public/login.html">Login</a>
-        <a href="public/register.html">Register</a>
-    </nav>
-</header>
+    </div>
+</nav>
 
 <!-- HERO -->
 <section class="hero">
-    <div>
-        <h2>Order Genuine Electronics With Confidence</h2>
-        <p>
-            Smartphones, Laptops, TVs, Audio Systems, Home & Office Electronics.
-            Pay on delivery after receiving your product.
-        </p>
-
-        <div class="search-box">
-            <input type="text" placeholder="Search electronics products...">
-        </div>
-
-        <br>
-        <button onclick="location.href='public/login.html'">Start Ordering</button>
+    <div class="hero-text">
+        <h1>Modern Electronics Store</h1>
+        <p>Buy latest phones, laptops, accessories with trusted quality and fast ordering system.</p>
+        <a href="user/products.php">Shop Now</a>
     </div>
-
-    <img src="assets/images/electronics.jpg" alt="Electronics">
+    <img src="assets/images/products/phone1.jpg">
 </section>
 
-<!-- CATEGORIES -->
+<!-- FEATURED -->
 <section class="section">
-    <h2>Popular Categories</h2>
-    <p>Explore our wide range of electronics</p>
+    <h2>Latest Products</h2>
 
-    <div class="grid">
+    <div class="products">
+        <?php while($p = mysqli_fetch_assoc($products)){ ?>
         <div class="card">
-            <img src="assets/images/phones.jpg">
-            <h3>Smartphones</h3>
+            <img src="assets/images/products/<?php echo $p['image']; ?>">
+            <div class="card-body">
+                <h4><?php echo $p['product_name']; ?></h4>
+                <p><?php echo substr($p['description'],0,50); ?>...</p>
+                <div class="price">$<?php echo number_format($p['price'],2); ?></div>
+            </div>
         </div>
+        <?php } ?>
+    </div>
+</section>
 
-        <div class="card">
-            <img src="assets/images/laptops.jpg">
-            <h3>Laptops & Computers</h3>
+<!-- WHY US -->
+<section class="section">
+    <h2>Why Choose Us</h2>
+    <div class="why">
+        <div>
+            <h3>✔ Genuine Products</h3>
+            <p>We sell 100% original electronics.</p>
         </div>
-
-        <div class="card">
-            <img src="assets/images/tv.jpg">
-            <h3>Televisions</h3>
+        <div>
+            <h3>🚚 Fast Orders</h3>
+            <p>Quick order processing and delivery.</p>
         </div>
-
-        <div class="card">
-            <img src="assets/images/audio.jpg">
-            <h3>Audio Systems</h3>
-        </div>
-
-        <div class="card">
-            <img src="assets/images/accessories.jpg">
-            <h3>Accessories</h3>
-        </div>
-
-        <div class="card">
-            <img src="assets/images/home.jpg">
-            <h3>Home Electronics</h3>
+        <div>
+            <h3>💳 Flexible Payment</h3>
+            <p>Pay on delivery or after confirmation.</p>
         </div>
     </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+    <h2>Ready to Order?</h2>
+    <p>Browse our products and place your order today.</p><br>
+    <a href="user/products.php">Order Now</a>
 </section>
 
 <!-- FOOTER -->
 <footer>
-    <div class="footer-grid">
-        <div>
-            <h4>About ElectroHub</h4>
-            <p>Trusted electronics ordering system providing genuine products with safe delivery.</p>
-        </div>
-
-        <div>
-            <h4>Quick Links</h4>
-            <a href="index.php">Home</a>
-            <a href="public/login.html">Login</a>
-            <a href="public/register.html">Register</a>
-        </div>
-
-        <div>
-            <h4>Contact Us</h4>
-            <p>📍 Tanzania</p>
-            <p>📞 +255 671668284</p>
-            <p>✉️ info@electrohub.co.tz</p>
-        </div>
-
-        <div class="social">
-            <h4>Follow Us</h4>
-            <a href="#">Facebook</a>
-            <a href="#">Instagram</a>
-            <a href="#">WhatsApp</a>
-        </div>
-    </div>
-
-    <div class="copy">
-        &copy; 2026 ElectroHub – Electronics Ordering System
-    </div>
+    © <?php echo date("Y"); ?> Electronics Ordering System | Powered by Mwakyembe
 </footer>
 
 </body>
